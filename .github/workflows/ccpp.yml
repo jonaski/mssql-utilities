@@ -1,0 +1,36 @@
+name: "CI: Build Test"
+
+on: [push, pull_request]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Update Packages
+      run: sudo apt-get update -y
+    - name: Install Packages
+      run:
+        sudo apt-get install libboost-dev
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+
+    - name: Configure CMake - ATTACH
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+    - name: Build - ATTACH
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build . --config $BUILD_TYPE
+
+
+    - name: Configure CMake - DETTACH
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DMSSQL_DETACH=ON
+    - name: Build - DETTACH
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build . --config $BUILD_TYPE

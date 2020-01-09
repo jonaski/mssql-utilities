@@ -1,0 +1,2 @@
+#cmakedefine EXPERIMENTAL_FILESYSTEM
+#cmakedefine MSSQL_DETACH

@@ -1,4 +1,4 @@
-:wrench: MSSQL Utilities
+:wrench: MSSQL Utilities [![Build Status](https://github.com/jonaski/mssql-utilities/workflows/CI:%20Build%20Test/badge.svg)](https://github.com/jonaski/mssql-utilities/actions)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://paypal.me/jonaskvinge)
 =======================
 

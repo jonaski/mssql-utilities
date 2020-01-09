@@ -17,49 +17,62 @@
 
  */
 
+#include "config.h"
+
 #include <cstdio>
 #include <string>
 #include <iostream>
 #include <fstream>
+
+#ifdef EXPERIMENTAL_FILESYSTEM
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
 #include <filesystem>
+namespace fs = std::filesystem;
+#endif
 #include <boost/algorithm/string.hpp>
 
-int main(int, char *argv[]) {
+int main(int, char**) {
 
   std::string out_filename;
-  std::string executable = std::filesystem::path(std::string(argv[0])).stem().u8string();
-  if (executable == "mssql-detach")
+#ifdef MSSQL_DETACH
     out_filename = "mssql-detach.sql";
-  else
+#else
     out_filename = "mssql-attach.sql";
+#endif
 
-  std::cout << "' " << executable << " (C) 2019 Jonas Kvinge\n";
+  std::cout << "' MSSQL Utilities (C) 2019 Jonas Kvinge\n";
   std::cout << "' This program is free software, released under GPL.\n";
   std::cout << "' For more information vist https://github.com/jonaski/\n";
 
-  if (std::filesystem::exists(out_filename)) {
-    std::filesystem::remove(out_filename);
+  if (fs::exists(out_filename)) {
+    fs::remove(out_filename);
   }
 
   std::ofstream out_file;
   out_file.open(out_filename);
 
-  for (const auto &i : std::filesystem::__cxx11::directory_iterator(".")) {
-    if (!i.is_regular_file() || !i.path().has_extension()) continue;
+  for (const auto &i : fs::directory_iterator(".")) {
+#ifdef EXPERIMENTAL_FILESYSTEM
+    if (!fs::is_regular_file(i)) continue;
+#else
+    if (!i.is_regular_file()) continue;
+#endif
+    if (!i.path().has_extension()) continue;
     std::string extension = i.path().extension().u8string();
     boost::algorithm::to_lower(extension);
     if (extension != ".mdf") continue;
     std::string dbname = i.path().stem().u8string();
     if (dbname == "MSDBData" || dbname == "master" || dbname == "model" || dbname == "tempdb") continue;
     std::string filename = i.path().filename().u8string();
-    std::string this_path = std::filesystem::current_path().u8string();
+    std::string this_path = fs::current_path().u8string();
     std::string command;
-    if (executable == "mssql-detach") {
+#ifdef MSSQL_DETACH
       command = "exec sp_detach_db '" + dbname + "'";
-    }
-    else {
+#else
       command = "exec sp_attach_db @dbname = '" + dbname + "', @filename1='" + this_path + "\\" + filename + "', @filename2='" + this_path + "\\" + dbname + "_log.ldf" + "'";
-    }
+#endif
     std::cout << command << "\n";
     if (out_file.is_open()) {
       out_file << command << + "\n";
